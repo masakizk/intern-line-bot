@@ -28,9 +28,9 @@ class WebhookController < ApplicationController
 
           if user_message.include?("ご飯")
             # メッセージに「ご飯」が含まれている場合は飯テロ画像を出す
-            food_response client, event
+            food_response(client, event)
           else
-            echo_response client, event
+            echo_response(client, event)
           end
 
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
