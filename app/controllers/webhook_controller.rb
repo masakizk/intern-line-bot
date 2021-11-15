@@ -24,11 +24,15 @@ class WebhookController < ApplicationController
       when Line::Bot::Event::Message
         case event.type
         when Line::Bot::Event::MessageType::Text
-          message = {
-            type: 'text',
-            text: event.message['text']
-          }
-          client.reply_message(event['replyToken'], message)
+          user_message = event.message['text']
+
+          if user_message.include?("ご飯")
+            # メッセージに「ご飯」が含まれている場合は飯テロ画像を出す
+            food_response client, event
+          else
+            echo_response client, event
+          end
+
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
           response = client.get_message_content(event.message['id'])
           tf = Tempfile.open("content")
@@ -37,5 +41,34 @@ class WebhookController < ApplicationController
       end
     }
     head :ok
+  end
+
+  # ランダムに選ばれたご飯の画像を送信する
+  def food_response(client, event)
+    message = {
+      type: 'text',
+      text: "これでも食べな"
+    }
+
+    # ランダムにご飯の画像を一枚選ぶ
+    food_images = %w[food_ramen.jpg food_hamburg.jpg food_oden.jpg]
+    selected_food_image = food_images.sample
+    food_image_url = "https://#{ENV["HOST_NAME"]}/assets/#{selected_food_image}"
+    image = {
+      type: "image",
+      originalContentUrl: food_image_url,
+      previewImageUrl: food_image_url
+    }
+
+    client.reply_message(event['replyToken'], [message, image])
+  end
+
+  # ユーザーの発言をそのまま返す
+  def echo_response(client, event)
+    message = {
+      type: 'text',
+      text: event.message['text']
+    }
+    client.reply_message(event['replyToken'], message)
   end
 end
