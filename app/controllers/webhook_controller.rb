@@ -29,6 +29,9 @@ class WebhookController < ApplicationController
           if user_message.include?("ご飯")
             # メッセージに「ご飯」が含まれている場合は飯テロ画像を出す
             food_response(client, event)
+          elsif user_message.include?("アドバイス")
+            # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
+            advice_reply(client, event)
           else
             echo_response(client, event)
           end
@@ -61,6 +64,30 @@ class WebhookController < ApplicationController
     }
 
     client.reply_message(event['replyToken'], [message, image])
+  end
+
+
+  # 健康に関するアドバイスを返す
+  def advice_reply(client, event)
+    advices = [
+      "１時間座り続けると、寿命が22分も縮まるんだって！\n30分に１回立ち上がるだけで、リスクを減らせるみたいだよ。\n今がその時だ！",
+      "ご飯を食べるときに、野菜を先に食べたほうがいいって言うよね。\nいろいろ理由はあるんだけど、野菜は食べるのにたくさん噛む必要があるから、脳が満腹感を感じて、どか食いを防げるんだって。",
+      "朝起きても、なんだか寝た気がしないときがあるよね。\n寝る直前にご飯を食べると、消化するためにエネルギーを使うから、睡眠に良くないらしい。\n食事は寝る3時間前に済ませるか、消化に良いものを食べると睡眠に影響を与えにくいよ！"
+    ]
+    selected_advice = advices.sample
+
+    messages = [
+      {
+        type: 'text',
+        text: "仕方ないなぁ。　一つ、伝授しようではないか"
+      },
+      {
+        type: 'text',
+        text: selected_advice
+      }
+    ]
+
+    client.reply_message(event['replyToken'], messages)
   end
 
   # ユーザーの発言をそのまま返す
