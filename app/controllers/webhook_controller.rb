@@ -46,8 +46,8 @@ class WebhookController < ApplicationController
 
   private
 
-  # LINE BOTでメッセージを送信するためのオブジェクトを作成する
-  def create_message_object(message)
+  # LINE BOTでテキストを送信するためのオブジェクトを作成する
+  def create_text_object(message)
     {
       type: 'text',
       text: message
@@ -65,7 +65,7 @@ class WebhookController < ApplicationController
 
   # ランダムに選ばれたご飯の画像を送信する
   def food_response(client, event)
-    message = create_message_object("これでも食べな")
+    message = create_text_object("これでも食べな")
 
     # ランダムにご飯の画像を一枚選ぶ
     food_images = %w[food_ramen.jpg food_hamburg.jpg food_oden.jpg]
@@ -83,8 +83,8 @@ class WebhookController < ApplicationController
     selected_advice = advices.sample
 
     messages = [
-      create_message_object("仕方ないなぁ。　一つ、伝授しようではないか"),
-      create_message_object(selected_advice.message)
+      create_text_object("仕方ないなぁ。　一つ、伝授しようではないか"),
+      create_text_object(selected_advice.message)
     ]
 
     client.reply_message(event['replyToken'], messages)
