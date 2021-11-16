@@ -79,12 +79,12 @@ class WebhookController < ApplicationController
 
   # 健康に関するアドバイスを返す
   def advice_response(client, event)
-    advice = Advice.new
-    selected_advice = advice.all.sample
+    advices = Advice.all
+    selected_advice = advices.sample
 
     messages = [
       create_message_object("仕方ないなぁ。　一つ、伝授しようではないか"),
-      create_message_object(selected_advice)
+      create_message_object(selected_advice.message)
     ]
 
     client.reply_message(event['replyToken'], messages)
