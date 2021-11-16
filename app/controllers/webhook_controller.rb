@@ -46,26 +46,36 @@ class WebhookController < ApplicationController
     head :ok
   end
 
+  # LINE BOTでメッセージを送信するためのオブジェクトを作成する
+  def create_message_object(message)
+    {
+      type: 'text',
+      text: message
+    }
+  end
+
+  # LINE BOTで画像を送信するためのオブジェクトを作成する
+  def create_image_object(image_url)
+    {
+      type: "image",
+      originalContentUrl: image_url,
+      previewImageUrl: image_url
+    }
+  end
+
   # ランダムに選ばれたご飯の画像を送信する
   def food_response(client, event)
-    message = {
-      type: 'text',
-      text: "これでも食べな"
-    }
+    message = create_message_object("これでも食べな")
 
     # ランダムにご飯の画像を一枚選ぶ
     food_images = %w[food_ramen.jpg food_hamburg.jpg food_oden.jpg]
     selected_food_image = food_images.sample
+
     food_image_url = "https://#{ENV["HOST_NAME"]}/assets/#{selected_food_image}"
-    image = {
-      type: "image",
-      originalContentUrl: food_image_url,
-      previewImageUrl: food_image_url
-    }
+    image = create_image_object(food_image_url)
 
     client.reply_message(event['replyToken'], [message, image])
   end
-
 
   # 健康に関するアドバイスを返す
   def advice_response(client, event)
@@ -77,14 +87,8 @@ class WebhookController < ApplicationController
     selected_advice = advices.sample
 
     messages = [
-      {
-        type: 'text',
-        text: "仕方ないなぁ。　一つ、伝授しようではないか"
-      },
-      {
-        type: 'text',
-        text: selected_advice
-      }
+      create_message_object("仕方ないなぁ。　一つ、伝授しようではないか"),
+      create_message_object(selected_advice)
     ]
 
     client.reply_message(event['replyToken'], messages)
@@ -92,10 +96,7 @@ class WebhookController < ApplicationController
 
   # ユーザーの発言をそのまま返す
   def echo_response(client, event)
-    message = {
-      type: 'text',
-      text: event.message['text']
-    }
+    message = create_message_object(event.message['text'])
     client.reply_message(event['replyToken'], message)
   end
 end
