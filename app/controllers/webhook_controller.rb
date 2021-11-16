@@ -26,11 +26,12 @@ class WebhookController < ApplicationController
         when Line::Bot::Event::MessageType::Text
           user_message = event.message['text']
 
-          if user_message.include?("ご飯")
-            # メッセージに「ご飯」が含まれている場合は飯テロ画像を出す
-            food_response(client, event)
+          if user_message.include?("アドバイス")
+            # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
+            advice_response(client, event)
           else
-            echo_response(client, event)
+            # 話しかけると、飯テロ画像を送信する。
+            food_response(client, event)
           end
 
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
@@ -43,32 +44,49 @@ class WebhookController < ApplicationController
     head :ok
   end
 
+  private
+
+  # LINE BOTでテキストを送信するためのオブジェクトを作成する
+  def create_text_object(message)
+    {
+      type: 'text',
+      text: message
+    }
+  end
+
+  # LINE BOTで画像を送信するためのオブジェクトを作成する
+  def create_image_object(image_url)
+    {
+      type: "image",
+      originalContentUrl: image_url,
+      previewImageUrl: image_url
+    }
+  end
+
   # ランダムに選ばれたご飯の画像を送信する
   def food_response(client, event)
-    message = {
-      type: 'text',
-      text: "これでも食べな"
-    }
+    message = create_text_object("これでも食べな")
 
     # ランダムにご飯の画像を一枚選ぶ
     food_images = %w[food_ramen.jpg food_hamburg.jpg food_oden.jpg]
     selected_food_image = food_images.sample
+
     food_image_url = "https://#{ENV["HOST_NAME"]}/assets/#{selected_food_image}"
-    image = {
-      type: "image",
-      originalContentUrl: food_image_url,
-      previewImageUrl: food_image_url
-    }
+    image = create_image_object(food_image_url)
 
     client.reply_message(event['replyToken'], [message, image])
   end
 
-  # ユーザーの発言をそのまま返す
-  def echo_response(client, event)
-    message = {
-      type: 'text',
-      text: event.message['text']
-    }
-    client.reply_message(event['replyToken'], message)
+  # 健康に関するアドバイスを返す
+  def advice_response(client, event)
+    advices = Advice.all
+    selected_advice = advices.sample
+
+    messages = [
+      create_text_object("仕方ないなぁ。　一つ、伝授しようではないか"),
+      create_text_object(selected_advice.message)
+    ]
+
+    client.reply_message(event['replyToken'], messages)
   end
 end
