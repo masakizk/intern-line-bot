@@ -44,6 +44,8 @@ class WebhookController < ApplicationController
     head :ok
   end
 
+  private
+
   # LINE BOTでメッセージを送信するためのオブジェクトを作成する
   def create_message_object(message)
     {
