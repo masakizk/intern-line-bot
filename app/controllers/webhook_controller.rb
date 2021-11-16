@@ -26,14 +26,12 @@ class WebhookController < ApplicationController
         when Line::Bot::Event::MessageType::Text
           user_message = event.message['text']
 
-          if user_message.include?("ご飯")
-            # メッセージに「ご飯」が含まれている場合は飯テロ画像を出す
-            food_response(client, event)
-          elsif user_message.include?("アドバイス")
+          if user_message.include?("アドバイス")
             # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
             advice_response(client, event)
           else
-            echo_response(client, event)
+            # 話しかけると、飯テロ画像を送信する。
+            food_response(client, event)
           end
 
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
@@ -92,11 +90,5 @@ class WebhookController < ApplicationController
     ]
 
     client.reply_message(event['replyToken'], messages)
-  end
-
-  # ユーザーの発言をそのまま返す
-  def echo_response(client, event)
-    message = create_message_object(event.message['text'])
-    client.reply_message(event['replyToken'], message)
   end
 end
