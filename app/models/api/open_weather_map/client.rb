@@ -2,10 +2,10 @@ module API
   module OpenWeatherMap
     class Client
       BASE_URL = "https://api.openweathermap.org"
+      TOO_MANY_REQUESTS = 429
 
       def initialize
         @connection = Faraday.new(url: BASE_URL) do |faraday|
-          faraday.response :raise_error
           faraday.options[:timeout] = 5
         end
       end
@@ -19,6 +19,16 @@ module API
           lang: "ja",
           cnt: 4 # 12時間分の天気予報を取得する
         })
+
+        unless response.success?
+          case response.status
+          when TOO_MANY_REQUESTS then
+            raise TooManyRequestsException.new("Free subscription can make 60 API calls per minute.")
+          else
+            raise RuntimeError.new("Open Weather Map Api request was failed(Status Code: #{response.status})")
+          end
+        end
+
         response_json = JSON.parse(response.body)
         forecasts = response_json["list"].map { |forecast| HourlyWeather.from_json(forecast) }
         return forecasts
