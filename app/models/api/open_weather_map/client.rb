@@ -6,6 +6,7 @@ module API
       def initialize
         @connection = Faraday.new(url: BASE_URL) do |faraday|
           faraday.response :raise_error
+          faraday.options[:timeout] = 5
         end
       end
 
