@@ -1,19 +1,17 @@
 module API
   module OpenWeatherMap
     class HourlyWeather
-      attr_reader :time
-      attr_reader :temperature
-      attr_reader :weather
+      attr_reader :time_unix, :temperature, :weather
 
-      def initialize(time:, temperature:, weather:)
-        @time = time
+      def initialize(time_unix:, temperature:, weather:)
+        @time_unix = time_unix
         @temperature = temperature
         @weather = weather
       end
 
       def self.from_json(json)
         HourlyWeather.new(
-          time: Time.at(json["dt"]),
+          time_unix: json["dt"],
           temperature: json["main"]["temp"],
           weather: json["weather"][0]["main"]
         )
