@@ -47,4 +47,4 @@ gem 'listen', group: :development
 
 gem 'dotenv-rails', group: [:development]
 
-gem 'httpclient'
+gem 'faraday', '1.3.0'
