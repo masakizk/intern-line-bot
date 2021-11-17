@@ -23,6 +23,25 @@ module API
       def can_go_out?
         [Weathers::CLEAR, Weathers::CLOUDS].include?(weather)
       end
+
+      def weather_japanese
+          case @weather
+          when Weathers::THUNDERSTORM then
+            "雷"
+          when Weathers::DRIZZLE then
+            "霧雨"
+          when Weathers::RAIN then
+            "雨"
+          when Weathers::SNOW then
+            "雪"
+          when Weathers::CLEAR then
+            "晴れ"
+          when Weathers::CLOUDS then
+            "曇り"
+          else
+            "不明"
+          end
+      end
     end
   end
 end
