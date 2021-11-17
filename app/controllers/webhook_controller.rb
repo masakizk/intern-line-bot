@@ -29,6 +29,9 @@ class WebhookController < ApplicationController
           if user_message.include?("アドバイス")
             # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
             advice_response(client, event)
+          elsif user_message.include?("天気")
+            # メッセージに「天気」が含まれている場合は、今日の天気と、おすすめの運動を提案する
+            weather_response(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -88,5 +91,39 @@ class WebhookController < ApplicationController
     ]
 
     client.reply_message(event['replyToken'], messages)
+  end
+
+  # 今日の天気を調べ、天気に応じて、簡単な運動を促す
+  def weather_response(client, event)
+    api_client = API::OpenWeatherMap::Client.new
+
+    # 例外が発生した場合は、そのことを利用者に伝えて終了する。
+    begin
+      forecasts = api_client.fetch_three_hourly_forecasts
+    rescue API::TooManyRequestsException => e
+      Rails.logger.error("[WebhookController] Error while fetching weather forecast: #{e}")
+      message = create_text_object("みんなが一斉に天気を知りたがっているみたい。\n時間をあけてもう一度聞いてね。")
+      client.reply_message(event['replyToken'], message)
+      return
+    rescue => e
+      Rails.logger.error("[WebhookController] Error while fetching weather forecast: #{e}")
+      message = create_text_object(" ごめん、天気を調べられなかったよ。 \n時間をあけてもう一度聞いてね。 ")
+      client.reply_message(event['replyToken'], message)
+      return
+    end
+
+    # 天気を報告
+    forecast_three_hours_later = forecasts[0]
+    weather_japanese = forecast_three_hours_later.weather_japanese
+    weather_message = create_text_object("今日の天気は　#{weather_japanese}　だよ。")
+
+    # 天気に応じて、簡単な運動を促す。
+    if forecast_three_hours_later.can_go_out?
+      exercise_advice = create_text_object("15~30分だけでも外に出ることをおすすめするよ。\n紫外線を浴びるとビタミンDが作られて、いろいろながんの予防にもなるんだって。\n近くのコンビニにパンでも買いに行こうじゃないか！")
+    else
+      exercise_advice = create_text_object("外に出られなくても、ちょっとだけ体を動かしてみよう\n大丈夫。　その場で足踏みするだけ！\nポイントは腕をしっかり振って、肘を大きく上げること！\nハイ、１、２，１、２！")
+    end
+
+    client.reply_message(event['replyToken'], [weather_message, exercise_advice])
   end
 end
