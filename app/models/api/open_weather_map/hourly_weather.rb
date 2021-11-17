@@ -16,6 +16,10 @@ module API
           weather: json["weather"][0]["main"]
         )
       end
+
+      def can_go_out?
+        [API::OpenWeatherMap::CLEAR, API::OpenWeatherMap::CLOUDS].include?(weather)
+      end
     end
   end
 end
