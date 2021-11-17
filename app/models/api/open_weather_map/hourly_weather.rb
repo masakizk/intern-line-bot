@@ -1,3 +1,5 @@
+require_relative 'weathers'
+
 module API
   module OpenWeatherMap
     class HourlyWeather
@@ -15,6 +17,11 @@ module API
           temperature: json["main"]["temp"],
           weather: json["weather"][0]["main"]
         )
+      end
+
+      # 外出できる天気かどうかを判定する。
+      def can_go_out?
+        [Weathers::CLEAR, Weathers::CLOUDS].include?(weather)
       end
     end
   end
