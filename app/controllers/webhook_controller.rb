@@ -191,6 +191,11 @@ class WebhookController < ApplicationController
       end
     end
 
+    # 既に同じ日の起床時間が記録されていない場合は何もしない
+    if user.today_wakeup_saved?
+      return
+    end
+
     # 起床時間を記録する
     begin
       user.save_wakeup(Time.now)
