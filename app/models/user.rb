@@ -13,8 +13,7 @@ class User < ApplicationRecord
 
   # 利用者の起床時間を記録する
   def save_wakeup(wakeup_at = Time.now)
-    wakeup_record = Wakeup.new(user: self, wakeup_at: wakeup_at)
-    wakeup_record.save!
+    Wakeup.create!(user: self, wakeup_at: wakeup_at)
   end
 
   # 今日の起床時間が記録されているかどうか
