@@ -17,5 +17,9 @@ module RubyGettingStarted
     # the framework and any gems in your application.
 
     config.autoload_paths << Rails.root.join('app/exceptions')
+
+    # タイムゾーンの設定
+    config.time_zone = 'Tokyo'
+    config.active_record.default_timezone = :local
   end
 end
