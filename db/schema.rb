@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_19_015914) do
+ActiveRecord::Schema.define(version: 2021_11_19_020626) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,14 @@ ActiveRecord::Schema.define(version: 2021_11_19_015914) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "wakeup_records", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.datetime "wakeup_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_wakeup_records_on_user_id"
+  end
+
   create_table "widgets", force: :cascade do |t|
     t.string "name"
     t.text "description"
@@ -29,4 +37,5 @@ ActiveRecord::Schema.define(version: 2021_11_19_015914) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "wakeup_records", "users"
 end
