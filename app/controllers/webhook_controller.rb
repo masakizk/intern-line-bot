@@ -107,7 +107,7 @@ class WebhookController < ApplicationController
       return
     rescue => e
       Rails.logger.error("[WebhookController] Error while fetching weather forecast: #{e}")
-      message = create_text_object(" ごめん、天気を調べられなかったよ。 \n時間をあけてもう一度聞いてね。 ")
+      message = create_text_object("ごめん、天気を調べられなかったよ。 \n時間をあけてもう一度聞いてね。 ")
       client.reply_message(event['replyToken'], message)
       return
     end
