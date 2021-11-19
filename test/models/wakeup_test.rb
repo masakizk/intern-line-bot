@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class WakeupRecordTest < ActiveSupport::TestCase
+class WakeupTest < ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end
