@@ -1,3 +1,3 @@
 class User < ApplicationRecord
-  has_many :wakeup
+  has_many :wakeups
 end
