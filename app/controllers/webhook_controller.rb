@@ -26,12 +26,12 @@ class WebhookController < ApplicationController
         when Line::Bot::Event::MessageType::Text
           user_message = event.message['text']
 
-          if user_message.include?("アドバイス")
-            # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
-            advice_response(client, event)
-          elsif user_message.include?("天気")
+          if user_message.include?("天気")
             # メッセージに「天気」が含まれている場合は、今日の天気と、おすすめの運動を提案する
             weather_response(client, event)
+          elsif user_message.include?("アドバイス")
+            # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
+            advice_response(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
