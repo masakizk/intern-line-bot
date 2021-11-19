@@ -35,6 +35,8 @@ class WebhookController < ApplicationController
           elsif contain(user_message, ["おはよう", "起きた"])
             # 朝の挨拶、起床をしたことを伝えられたら、時間に応じて早く起きたことを褒める。
             good_morning_response(client, event)
+            # 起床時間を記録する(Pushで通知する)
+            save_wakeup_time(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -167,5 +169,39 @@ class WebhookController < ApplicationController
     end
 
     client.reply_message(event['replyToken'], messages)
+  end
+
+  # 起床時間を保存し、完了時にpushメッセージで通知する
+  def save_wakeup_time(client, event)
+    # 送信者がユーザーでない場合は、何もしない
+    if event["source"]["type"] != "user"
+      return
+    end
+    user_id = event["source"]["userId"]
+
+    # ユーザーを検索（登録されていなければ登録する）
+    begin
+      user = User.find_or_create_by!(line_user_id: user_id)
+    rescue => e
+      Rails.logger.error("[WebhookController] Error while creating user: #{e}")
+      client.push_message(user_id, create_text_object("起床時間を記録することができなかったよ。\n明日、もう一度、声をかけてみて！"))
+      return
+    end
+
+    # 既に同じ日の起床時間が記録されていない場合は何もしない
+    if user.today_wakeup_saved?
+      return
+    end
+
+    # 起床時間を記録する
+    begin
+      user.wakeups.create!(wakeup_at: Time.now)
+    rescue => e
+      Rails.logger.error("[WebhookController] Error while saving wakeup time: #{e}")
+      client.push_message(user_id, create_text_object("起床時間を記録することができなかったよ。\n明日、もう一度、声をかけてみて！"))
+      return
+    end
+
+    client.push_message(user_id, create_text_object("起きた時間を記録したよ！"))
   end
 end
