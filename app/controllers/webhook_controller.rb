@@ -66,6 +66,18 @@ class WebhookController < ApplicationController
     }
   end
 
+  # LINE BOTでスタンプを送信するためのオブジェクトを作成する
+  # 送信可能なスタンプリスト: https://developers.line.biz/ja/docs/messaging-api/sticker-list/
+  # @param [String] package_id スタンプセットのパッケージIDEA
+  # @param [String] sticker_id スタンプID
+  def create_sticker_object(package_id:, sticker_id:)
+    {
+      "type": "sticker",
+      "packageId": package_id,
+      "stickerId": sticker_id
+    }
+  end
+
   # ランダムに選ばれたご飯の画像を送信する
   def food_response(client, event)
     message = create_text_object("これでも食べな")
