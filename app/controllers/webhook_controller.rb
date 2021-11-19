@@ -37,6 +37,8 @@ class WebhookController < ApplicationController
             good_morning_response(client, event)
             # 起床時間を記録する(Pushで通知する)
             save_wakeup_time(client, event)
+            # 早起きした日数を報告する（Pushで通知する）
+            report_wakeup_early_days(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -203,5 +205,30 @@ class WebhookController < ApplicationController
     end
 
     client.push_message(user_id, create_text_object("起きた時間を記録したよ！"))
+  end
+
+  # 連続して何日早起きできたかを報告する
+  def report_wakeup_early_days(client, event)
+    # 送信者がユーザーでない場合は、何もしない
+    if event["source"]["type"] != "user"
+      return
+    end
+    user_id = event["source"]["userId"]
+
+    # ユーザーを検索（登録されていなければ登録する）
+    user = User.find_by(line_user_id: user_id)
+    unless user
+      return
+    end
+
+    # １日以上、早起きしている場合は、称賛する
+    wakeup_early_days = user.wakeup_early_days
+    puts "WAKEUP: #{wakeup_early_days}"
+    if wakeup_early_days > 0
+      client.push_message(user_id, [
+        create_text_object("#{wakeup_early_days}日、連続で早起きできてるよ！　すごいね！"),
+        create_sticker_object(package_id: "789", sticker_id: "10857")
+      ])
+    end
   end
 end
