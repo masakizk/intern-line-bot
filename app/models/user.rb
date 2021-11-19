@@ -10,4 +10,10 @@ class User < ApplicationRecord
 
     User.create!(line_user_id: user_id)
   end
+
+  # 利用者の起床時間を記録する
+  def save_wakeup(wakeup_at = Time.now)
+    wakeup_record = Wakeup.new(user: self, wakeup_at: wakeup_at)
+    wakeup_record.save!
+  end
 end
