@@ -21,7 +21,7 @@ module API
 
       # 外出できる天気かどうかを判定する。
       def can_go_out?
-        [Weathers::CLEAR, Weathers::CLOUDS].include?(weather)
+        [Weathers::CLEAR, Weathers::CLOUDS].include?(@weather)
       end
 
       def weather_japanese
