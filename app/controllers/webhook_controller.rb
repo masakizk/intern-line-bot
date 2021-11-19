@@ -195,7 +195,7 @@ class WebhookController < ApplicationController
 
     # 起床時間を記録する
     begin
-      user.save_wakeup(Time.now)
+      user.wakeups.create!(wakeup_at: Time.now)
     rescue => e
       Rails.logger.error("[WebhookController] Error while saving wakeup time: #{e}")
       client.push_message(user_id, create_text_object("起床時間を記録することができなかったよ。\n明日、もう一度、声をかけてみて！"))
