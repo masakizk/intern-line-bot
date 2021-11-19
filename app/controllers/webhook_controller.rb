@@ -180,15 +180,12 @@ class WebhookController < ApplicationController
     user_id = event["source"]["userId"]
 
     # ユーザーを検索（登録されていなければ登録する）
-    user = User.find_by(line_user_id: user_id)
-    unless user
-      begin
-        user = User.create_from_line_user(user_id)
-      rescue => e
-        Rails.logger.error("[WebhookController] Error while creating user: #{e}")
-        client.push_message(user_id, create_text_object("起床時間を記録することができなかったよ。\n明日、もう一度、声をかけてみて！"))
-        return
-      end
+    begin
+      user = User.find_or_create_by!(line_user_id: user_id)
+    rescue => e
+      Rails.logger.error("[WebhookController] Error while creating user: #{e}")
+      client.push_message(user_id, create_text_object("起床時間を記録することができなかったよ。\n明日、もう一度、声をかけてみて！"))
+      return
     end
 
     # 既に同じ日の起床時間が記録されていない場合は何もしない
