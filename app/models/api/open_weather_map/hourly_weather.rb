@@ -1,5 +1,3 @@
-require_relative 'weathers'
-
 module API
   module OpenWeatherMap
     class HourlyWeather

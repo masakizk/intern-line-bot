@@ -1,5 +1,4 @@
 require 'test_helper'
-require_relative '../../../../app/models/api/open_weather_map/weathers'
 
 module API
   module OpenWeatherMap
