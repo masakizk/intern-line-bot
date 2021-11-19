@@ -32,7 +32,7 @@ class WebhookController < ApplicationController
           elsif user_message.include?("アドバイス")
             # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
             advice_response(client, event)
-          elsif contain(user_message, %w[おはよう 起きた])
+          elsif contain(user_message, ["おはよう", "起きた"])
             # 朝の挨拶、起床をしたことを伝えられたら、時間に応じて早く起きたことを褒める。
             good_morning_response(client, event)
           else
