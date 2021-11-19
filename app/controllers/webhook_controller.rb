@@ -32,6 +32,9 @@ class WebhookController < ApplicationController
           elsif user_message.include?("アドバイス")
             # メッセージに「アドバイス」が含まれている場合は、健康に関する簡単なアドバイスを答える
             advice_response(client, event)
+          elsif contain(user_message, ["おはよう", "起きた"])
+            # 朝の挨拶、起床をしたことを伝えられたら、時間に応じて早く起きたことを褒める。
+            good_morning_response(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -49,6 +52,13 @@ class WebhookController < ApplicationController
 
   private
 
+  # 文字列(target)に、特定の文字(values)が含まれているかを調べる
+  # @param [String] target 対象となる文字列
+  # @param [Array[String]] values 含まれているかを調べる文字列
+  def contain(target, values)
+    values.any? { |value| target.include?(value) }
+  end
+
   # LINE BOTでテキストを送信するためのオブジェクトを作成する
   def create_text_object(message)
     {
@@ -63,6 +73,18 @@ class WebhookController < ApplicationController
       type: "image",
       originalContentUrl: image_url,
       previewImageUrl: image_url
+    }
+  end
+
+  # LINE BOTでスタンプを送信するためのオブジェクトを作成する
+  # 送信可能なスタンプリスト: https://developers.line.biz/ja/docs/messaging-api/sticker-list/
+  # @param [String] package_id スタンプセットのパッケージIDEA
+  # @param [String] sticker_id スタンプID
+  def create_sticker_object(package_id:, sticker_id:)
+    {
+      "type": "sticker",
+      "packageId": package_id,
+      "stickerId": sticker_id
     }
   end
 
@@ -125,5 +147,25 @@ class WebhookController < ApplicationController
     end
 
     client.reply_message(event['replyToken'], [weather_message, exercise_advice])
+  end
+
+  # 朝の挨拶をし、もし早起きをしていたらそのことを褒める。
+  def good_morning_response(client, event)
+    now = Time.now
+
+    if now.hour.between?(4, 7)
+      # 4:00 ~ 7:59に起きると、褒められる
+      messages = [
+        create_text_object("おはよう。\nおっ、今日は早起きだね。"),
+        create_sticker_object(package_id: "11537", sticker_id: "52002735")
+      ]
+    else
+      messages = [
+        create_text_object("おはよう。\n顔を洗って、目をぱっちりさせよう！"),
+        create_sticker_object(package_id: "11539", sticker_id: "52114146")
+      ]
+    end
+
+    client.reply_message(event['replyToken'], messages)
   end
 end
