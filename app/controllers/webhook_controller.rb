@@ -155,8 +155,8 @@ class WebhookController < ApplicationController
   def good_morning_response(client, event)
     now = Time.now
 
-    if now.hour.between?(4, 7)
-      # 4:00 ~ 7:59に起きると、褒められる
+    if Wakeup.early?(now)
+      # 早起きすると、褒められる
       messages = [
         create_text_object("おはよう。\nおっ、今日は早起きだね。"),
         create_sticker_object(package_id: "11537", sticker_id: "52002735")
