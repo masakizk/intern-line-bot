@@ -10,4 +10,10 @@ class Wakeup < ApplicationRecord
   def early?
     Wakeup.early?(wakeup_at)
   end
+
+  # 今日の記録かどうか
+  def today?
+    now = Time.now
+    now.to_date == wakeup_at.to_date
+  end
 end
