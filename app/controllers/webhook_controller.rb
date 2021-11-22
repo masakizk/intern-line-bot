@@ -220,14 +220,20 @@ class WebhookController < ApplicationController
     end
 
     wakeup_early_days = user.wakeup_early_days
-    if wakeup_early_days > 0
-      # １日以上、早起きしている場合は褒める
-      message = create_text_object("#{wakeup_early_days}日連続で早起きできてるよ！　すごいね！")
+    if wakeup_early_days <= 0
+      return
+    elsif wakeup_early_days == 1
+      # 早起きしている場合は褒める
+      message = create_text_object("早起きすると、スタンプがたまるよ！\n明日も、頑張って早起きしよう！")
+    else
+      # 連日で早起きしている場合は褒める
+      message = create_text_object("#{wakeup_early_days}日連続で早起きできてるよ！\nすごいね！")
+    end
 
-      # 3日単位で貯まるスタンプラリーを送信
-      stamp_image = "day_#{(wakeup_early_days - 1) % 3 + 1}.png"
-      stamp_image_url = "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
-      stamp = create_image_object(stamp_image_url)
+    # 3日単位で貯まるスタンプラリーを送信
+    stamp_image = "day_#{(wakeup_early_days - 1) % 3 + 1}.png"
+    stamp_image_url = "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
+    stamp = create_image_object(stamp_image_url)
 
     client.push_message(user_id, [message, stamp])
   end
