@@ -39,6 +39,9 @@ class WebhookController < ApplicationController
             save_wakeup_time(client, event)
             # 早起きした日数を報告する（Pushで通知する）
             wakeup_early_days_response(client, event)
+          elsif user_message.include?("スタンプラリー")
+            # 現在の早起きスタンプラリーの状態を見せる
+            stamp_rally_response(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -228,5 +231,30 @@ class WebhookController < ApplicationController
 
       client.push_message(event["source"]["userId"], [message, stamp])
     end
+  end
+
+  # 早起きをすると貯まる、スタンプラリーを表示
+  def stamp_rally_response(client, event)
+    user_id = event["source"]["userId"]
+    user = User.find_by(line_user_id: user_id)
+    if user
+      wakeup_early_days = user.wakeup_early_days
+    else
+      # ユーザーが登録されていなくても、スタンプラリーは表示する。
+      wakeup_early_days = 0
+    end
+
+    if wakeup_early_days == 0
+      # 一日も早起きしていない時だけ、なにもスタンプが押されていないカードを見せる
+      stamp_image = "day_0.png"
+    else
+      stamp_image = "day_#{(wakeup_early_days - 1) % 3 + 1}.png"
+    end
+
+    stamp_image_url = "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
+    client.reply_message(event['replyToken'], [
+      create_text_object("早起きをすると、スタンプが貯まるよ！"),
+      create_image_object(stamp_image_url)
+    ])
   end
 end
