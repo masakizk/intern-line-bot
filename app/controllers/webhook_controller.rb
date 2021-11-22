@@ -66,6 +66,18 @@ class WebhookController < ApplicationController
     values.any? { |value| target.include?(value) }
   end
 
+  # 早起きすることで貯まるスタンプの画像のURLを取得
+  # @param [Integer] count 連続して早起きした日数
+  def get_wakeup_early_stamp_url(count)
+    if count == 0
+      # 一日も早起きしていない時だけ、なにもスタンプが押されていないカードを見せる
+      stamp_image = "day_0.png"
+    else
+      stamp_image = "day_#{(count - 1) % 3 + 1}.png"
+    end
+    "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
+  end
+
   # LINE BOTでテキストを送信するためのオブジェクトを作成する
   def create_text_object(message)
     {
@@ -231,8 +243,7 @@ class WebhookController < ApplicationController
     end
 
     # 3日単位で貯まるスタンプラリーを送信
-    stamp_image = "day_#{(wakeup_early_days - 1) % 3 + 1}.png"
-    stamp_image_url = "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
+    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_days)
     stamp = create_image_object(stamp_image_url)
 
     client.push_message(user_id, [message, stamp])
@@ -249,14 +260,7 @@ class WebhookController < ApplicationController
       wakeup_early_days = 0
     end
 
-    if wakeup_early_days == 0
-      # 一日も早起きしていない時だけ、なにもスタンプが押されていないカードを見せる
-      stamp_image = "day_0.png"
-    else
-      stamp_image = "day_#{(wakeup_early_days - 1) % 3 + 1}.png"
-    end
-
-    stamp_image_url = "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
+    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_days)
     client.reply_message(event['replyToken'], [
       create_text_object("早起きをすると、スタンプが貯まるよ！"),
       create_image_object(stamp_image_url)
