@@ -38,7 +38,7 @@ class WebhookController < ApplicationController
             # 起床時間を記録する(Pushで通知する)
             save_wakeup_time(client, event)
             # 早起きした日数を報告する（Pushで通知する）
-            wakeup_early_days_response(client, event)
+            wakeup_early_days_report_response(client, event)
           elsif user_message.include?("スタンプラリー")
             # 現在の早起きスタンプラリーの状態を見せる
             stamp_rally_response(client, event)
@@ -211,7 +211,7 @@ class WebhookController < ApplicationController
   end
 
   # 連続して何日早起きできたかを報告する
-  def wakeup_early_days_response(client, event)
+  def wakeup_early_days_report_response(client, event)
     # ユーザーを検索（登録されていなければ何もしない）
     user_id = event["source"]["userId"]
     user = User.find_by(line_user_id: user_id)
