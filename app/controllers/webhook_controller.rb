@@ -83,6 +83,14 @@ class WebhookController < ApplicationController
     }
   end
 
+  # LINE ユーザーに対応する Userを取得
+  def find_user_from_line_user(event)
+    user_id = event["source"]["userId"]
+    if user_id
+      User.find_by(line_user_id: user_id)
+    end
+  end
+
   # LINE BOTでスタンプを送信するためのオブジェクトを作成する
   # 送信可能なスタンプリスト: https://developers.line.biz/ja/docs/messaging-api/sticker-list/
   # @param [String] package_id スタンプセットのパッケージIDEA
@@ -213,8 +221,7 @@ class WebhookController < ApplicationController
   # 連続して何日早起きできたかを報告する
   def wakeup_early_days_response(client, event)
     # ユーザーを検索（登録されていなければ何もしない）
-    user_id = event["source"]["userId"]
-    user = User.find_by(line_user_id: user_id)
+    user = find_user_from_line_user(event)
     unless user
       return
     end
@@ -235,8 +242,7 @@ class WebhookController < ApplicationController
 
   # 早起きをすると貯まる、スタンプラリーを表示
   def stamp_rally_response(client, event)
-    user_id = event["source"]["userId"]
-    user = User.find_by(line_user_id: user_id)
+    user = find_user_from_line_user(event)
     if user
       wakeup_early_days = user.wakeup_early_days
     else
