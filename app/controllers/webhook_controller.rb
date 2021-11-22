@@ -37,6 +37,11 @@ class WebhookController < ApplicationController
             good_morning_response(client, event)
             # 起床時間を記録する(Pushで通知する)
             save_wakeup_time(client, event)
+            # 早起きした日数を報告する（Pushで通知する）
+            wakeup_early_days_report_response(client, event)
+          elsif user_message.include?("スタンプラリー")
+            # 現在の早起きスタンプラリーの状態を見せる
+            stamp_rally_response(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -59,6 +64,18 @@ class WebhookController < ApplicationController
   # @param [Array[String]] values 含まれているかを調べる文字列
   def contain(target, values)
     values.any? { |value| target.include?(value) }
+  end
+
+  # 早起きすることで貯まるスタンプの画像のURLを取得
+  # @param [Integer] count 連続して早起きした日数
+  def get_wakeup_early_stamp_url(count)
+    if count == 0
+      # 一日も早起きしていない時だけ、なにもスタンプが押されていないカードを見せる
+      stamp_image = "day_0.png"
+    else
+      stamp_image = "day_#{(count - 1) % 3 + 1}.png"
+    end
+    "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
   end
 
   # LINE BOTでテキストを送信するためのオブジェクトを作成する
@@ -155,8 +172,8 @@ class WebhookController < ApplicationController
   def good_morning_response(client, event)
     now = Time.now
 
-    if now.hour.between?(4, 7)
-      # 4:00 ~ 7:59に起きると、褒められる
+    if Wakeup.early?(now)
+      # 早起きすると、褒められる
       messages = [
         create_text_object("おはよう。\nおっ、今日は早起きだね。"),
         create_sticker_object(package_id: "11537", sticker_id: "52002735")
@@ -203,5 +220,50 @@ class WebhookController < ApplicationController
     end
 
     client.push_message(user_id, create_text_object("起きた時間を記録したよ！"))
+  end
+
+  # 連続して何日早起きできたかを報告する
+  def wakeup_early_days_report_response(client, event)
+    # ユーザーを検索（登録されていなければ何もしない）
+    user_id = event["source"]["userId"]
+    user = User.find_by(line_user_id: user_id)
+    unless user
+      return
+    end
+
+    wakeup_early_day_count = user.wakeup_early_day_count
+    if wakeup_early_day_count <= 0
+      return
+    elsif wakeup_early_day_count == 1
+      # 早起きしている場合は褒める
+      message = create_text_object("早起きすると、スタンプがたまるよ！\n明日も、頑張って早起きしよう！")
+    else
+      # 連日で早起きしている場合は褒める
+      message = create_text_object("#{wakeup_early_day_count}日連続で早起きできてるよ！\nすごいね！")
+    end
+
+    # 3日単位で貯まるスタンプラリーを送信
+    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_day_count)
+    stamp = create_image_object(stamp_image_url)
+
+    client.push_message(user_id, [message, stamp])
+  end
+
+  # 早起きをすると貯まる、スタンプラリーを表示
+  def stamp_rally_response(client, event)
+    user_id = event["source"]["userId"]
+    user = User.find_by(line_user_id: user_id)
+    if user
+      wakeup_early_day_count = user.wakeup_early_day_count
+    else
+      # ユーザーが登録されていなくても、スタンプラリーは表示する。
+      wakeup_early_day_count = 0
+    end
+
+    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_day_count)
+    client.reply_message(event['replyToken'], [
+      create_text_object("早起きをすると、スタンプが貯まるよ！"),
+      create_image_object(stamp_image_url)
+    ])
   end
 end
