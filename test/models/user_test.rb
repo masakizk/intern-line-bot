@@ -33,7 +33,7 @@ describe "UserTest" do
         @user.wakeups.create!(wakeup_at: wakeup_at)
       }
 
-      assert_equal 2, @user.wakeup_early_days
+      assert_equal 2, @user.wakeup_early_day_count
     end
 
     it "連続していても今日が含まれていなければ、カウントしない" do
@@ -43,7 +43,7 @@ describe "UserTest" do
         today_morning.ago(2.days)
       ].each { |wakeup_at| @user.wakeups.create!(wakeup_at: wakeup_at) }
 
-      assert_equal 0, @user.wakeup_early_days
+      assert_equal 0, @user.wakeup_early_day_count
     end
 
     it "同じ日に複数回記録されていても、１回だけカウントする" do
@@ -58,7 +58,7 @@ describe "UserTest" do
         yesterday.change(hour: 12),
       ].each { |wakeup_at| @user.wakeups.create!(wakeup_at: wakeup_at) }
 
-      assert_equal 1, @user.wakeup_early_days
+      assert_equal 1, @user.wakeup_early_day_count
     end
 
     it "連続して早起きできていなければ、カウントしない" do
@@ -68,7 +68,7 @@ describe "UserTest" do
         today_morning.ago(2.days),
       ].each { |wakeup_at| @user.wakeups.create!(wakeup_at: wakeup_at) }
 
-      assert_equal 1, @user.wakeup_early_days
+      assert_equal 1, @user.wakeup_early_day_count
     end
 
     it "連続した日付でも、早起きできていなければカウントしない" do
@@ -79,7 +79,7 @@ describe "UserTest" do
       ]
       wakeup_ats.each { |wakeup_at| @user.wakeups.create!(wakeup_at: wakeup_at) }
 
-      assert_equal 1, @user.wakeup_early_days
+      assert_equal 1, @user.wakeup_early_day_count
     end
   end
 end

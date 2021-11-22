@@ -231,19 +231,19 @@ class WebhookController < ApplicationController
       return
     end
 
-    wakeup_early_days = user.wakeup_early_days
-    if wakeup_early_days <= 0
+    wakeup_early_day_count = user.wakeup_early_day_count
+    if wakeup_early_day_count <= 0
       return
-    elsif wakeup_early_days == 1
+    elsif wakeup_early_day_count == 1
       # 早起きしている場合は褒める
       message = create_text_object("早起きすると、スタンプがたまるよ！\n明日も、頑張って早起きしよう！")
     else
       # 連日で早起きしている場合は褒める
-      message = create_text_object("#{wakeup_early_days}日連続で早起きできてるよ！\nすごいね！")
+      message = create_text_object("#{wakeup_early_day_count}日連続で早起きできてるよ！\nすごいね！")
     end
 
     # 3日単位で貯まるスタンプラリーを送信
-    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_days)
+    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_day_count)
     stamp = create_image_object(stamp_image_url)
 
     client.push_message(user_id, [message, stamp])
@@ -254,13 +254,13 @@ class WebhookController < ApplicationController
     user_id = event["source"]["userId"]
     user = User.find_by(line_user_id: user_id)
     if user
-      wakeup_early_days = user.wakeup_early_days
+      wakeup_early_day_count = user.wakeup_early_day_count
     else
       # ユーザーが登録されていなくても、スタンプラリーは表示する。
-      wakeup_early_days = 0
+      wakeup_early_day_count = 0
     end
 
-    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_days)
+    stamp_image_url = get_wakeup_early_stamp_url(wakeup_early_day_count)
     client.reply_message(event['replyToken'], [
       create_text_object("早起きをすると、スタンプが貯まるよ！"),
       create_image_object(stamp_image_url)
