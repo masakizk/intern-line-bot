@@ -37,6 +37,8 @@ class WebhookController < ApplicationController
             good_morning_response(client, event)
             # 起床時間を記録する(Pushで通知する)
             save_wakeup_time(client, event)
+            # 早起きした日数を報告する（Pushで通知する）
+            wakeup_early_days_response(client, event)
           else
             # 話しかけると、飯テロ画像を送信する。
             food_response(client, event)
@@ -203,5 +205,28 @@ class WebhookController < ApplicationController
     end
 
     client.push_message(user_id, create_text_object("起きた時間を記録したよ！"))
+  end
+
+  # 連続して何日早起きできたかを報告する
+  def wakeup_early_days_response(client, event)
+    # ユーザーを検索（登録されていなければ何もしない）
+    user_id = event["source"]["userId"]
+    user = User.find_by(line_user_id: user_id)
+    unless user
+      return
+    end
+
+    wakeup_early_days = user.wakeup_early_days
+    if wakeup_early_days > 0
+      # １日以上、早起きしている場合は褒める
+      message = create_text_object("#{wakeup_early_days}日連続で早起きできてるよ！　すごいね！")
+
+      # 3日単位で貯まるスタンプラリーを送信
+      stamp_image = "day_#{(wakeup_early_days - 1) % 3 + 1}.png"
+      stamp_image_url = "https://#{ENV["HOST_NAME"]}/assets/stamps/#{stamp_image}"
+      stamp = create_image_object(stamp_image_url)
+
+      client.push_message(event["source"]["userId"], [message, stamp])
+    end
   end
 end
